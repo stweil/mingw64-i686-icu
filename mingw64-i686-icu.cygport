@@ -2,7 +2,7 @@ CROSS_HOST="i686-w64-mingw32"
 inherit cross
 
 NAME="mingw64-i686-icu"
-VERSION=49.1.2
+VERSION=51.2
 RELEASE=1
 CATEGORY="Devel"
 SUMMARY="International Components for Unicode for Win32 toolchain"
@@ -15,6 +15,8 @@ PATCH_URI="
 	http://pkgs.fedoraproject.org/cgit/mingw-icu.git/plain/icu4c-4_6_1-use-correct-genccode-assembly-on-win32-and-win64.patch
 "
 src_compile() {
+	cd ${S}
+	cygautoreconf
 	mkdir -p ${B}/cross-build
 	cd ${B}/cross-build
 	cygconf --host=$(sh ${S}/config.guess) CC=gcc CXX=g++
