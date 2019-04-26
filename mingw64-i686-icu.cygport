@@ -2,18 +2,15 @@ CROSS_HOST="i686-w64-mingw32"
 inherit cross
 
 NAME="mingw64-i686-icu"
-VERSION=57.1
-RELEASE=2
+VERSION=64.2
+RELEASE=1
 CATEGORY="Devel"
 SUMMARY="International Components for Unicode for Win32 toolchain"
 HOMEPAGE="http://icu-project.org/"
 SRC_URI="http://download.icu-project.org/files/icu4c/${VERSION}/icu4c-${VERSION//./_}-src.tgz"
 SRC_DIR="icu/source"
-PATCH_URI="
-	icu4c-56_1-crossbuild.patch
-	rhbz1360340-icu-changeset-39109.patch
-	57.1-cygwin-no-w32api.patch
-"
+
+DEPEND="python3"
 
 src_compile() {
 	cd ${S}
@@ -24,7 +21,6 @@ src_compile() {
 	cygmake
 	cd ${B}
 	cygconf --with-cross-build=${B}/cross-build \
-		--with-data-packaging=library \
 		ac_cv_search_dlopen=no
 	cygmake
 }
@@ -33,11 +29,18 @@ src_install() {
 	cd ${B}
 	cyginstall
 
-	mv ${D}${CROSS_LIBDIR}/icu*${VERSION%%.*}.dll ${D}${CROSS_BINDIR}/
-	mv ${D}${CROSS_LIBDIR}/cygicudata${VERSION%%.*}.dll ${D}${CROSS_BINDIR}/icudata${VERSION%%.*}.dll
 	rm -f ${D}${CROSS_BINDIR}/*.exe
+	mv ${D}${CROSS_LIBDIR}/icu*${VERSION%%.*}.dll ${D}${CROSS_BINDIR}/
+	mv ${D}${CROSS_LIBDIR}/cygicudt${VERSION%%.*}.dll ${D}${CROSS_BINDIR}/icudt${VERSION%%.*}.dll
 	rm -f ${D}${CROSS_LIBDIR}/*.dll
 	rm -f ${D}${CROSS_LIBDIR}/*${VERSION%%.*}.dll.a
+	# create versioned implib symlinks
+	pushd ${D}${CROSS_LIBDIR}
+	for l in *.dll.a; do
+		echo dosym ${l} ${CROSS_LIBDIR}/${l/.dll.a/${VERSION%%.*}.dll.a}
+		dosym ${l} ${CROSS_LIBDIR}/${l/.dll.a/${VERSION%%.*}.dll.a}
+	done
+	popd
 	rm -fr ${D}${CROSS_DATADIR}/man/
 }
 
